@@ -1,5 +1,5 @@
 # golosa_project
-MLOps projec
+MLOps project
 
 Проект: Сервис синтеза речи на русском языке
 
