@@ -27,4 +27,4 @@ MLOps project
 -  @bimastics (Алексей Курицын)
 -  @d_voo (Дарья Воронцова)
 -  @yuriy_severinov (Юрий Северинов)
--  @ingliworld (Александр )
+-  @qeeq72 (Владислав Маслов)
