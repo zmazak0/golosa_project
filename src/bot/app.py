@@ -62,12 +62,7 @@ async def process_text(message: types.Message, state: FSMContext):
     await state.finish()
 
 
-@dp.callback_query_handler(text="like")
-async def send_random_value(call: types.CallbackQuery):
-    await call.message.answer('Спасибо за обратную связь!')
-
-
-@dp.callback_query_handler(text="dislike")
+@dp.callback_query_handler(text=["like", "dislike"])
 async def send_random_value(call: types.CallbackQuery):
     await call.message.answer('Спасибо за обратную связь!')
 
