@@ -10,9 +10,8 @@ from aiogram.dispatcher import FSMContext
 
 logging.basicConfig(level=logging.INFO)
 
-# load_dotenv(".env")
-TG_BOT_TOKEN = "5679363404:AAFJBdgS-9C15fERNAxpv1U1xfANkwiPnws"
-# TG_BOT_TOKEN = os.environ['TG_BOT_TOKEN']
+load_dotenv(".env")
+TG_BOT_TOKEN = os.environ['TG_BOT_TOKEN']
 
 bot = Bot(token=TG_BOT_TOKEN)
 storage = MemoryStorage()
