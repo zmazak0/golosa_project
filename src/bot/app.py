@@ -51,7 +51,9 @@ async def process_text(message: types.Message, state: FSMContext):
     #audio = types.InputFile("dummy.mp3")
     # Тут надо прикрутить получение предсказания от модельки
     # Ей на вход надо кидать data['text']
-    audio = requests.post("http://127.0.0.1:8000/synthesys", data=json.dumps({"text":data['text']}))
+    audio = requests.post("http://127.0.0.1:8000/synthesys", data=json.dumps(
+        {"text" : data['text']})
+    )
 
     buttons = [
         types.InlineKeyboardButton(text="👍", callback_data="like"),
