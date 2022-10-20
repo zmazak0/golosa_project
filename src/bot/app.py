@@ -9,8 +9,9 @@ from aiogram.dispatcher import FSMContext
 
 logging.basicConfig(level=logging.INFO)
 
-load_dotenv(".env")
-TG_BOT_TOKEN = os.environ['TG_BOT_TOKEN']
+# load_dotenv(".env")
+TG_BOT_TOKEN = "5679363404:AAFJBdgS-9C15fERNAxpv1U1xfANkwiPnws"
+# TG_BOT_TOKEN = os.environ['TG_BOT_TOKEN']
 
 bot = Bot(token=TG_BOT_TOKEN)
 storage = MemoryStorage()
@@ -41,14 +42,47 @@ async def cancel_handler(message: types.Message, state: FSMContext):
     await state.finish()
     await message.reply('Cancelled.', reply_markup=types.ReplyKeyboardRemove())
 
-
+# vocalize text
 @dp.message_handler(state=Form.text)
 async def process_text(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['text'] = message.text
     audio = types.InputFile("dummy.mp3")
-    await message.reply_audio(audio=audio, title=data['text'], reply=False)
+    # Тут надо прикрутить получение предсказания от модельки
+    # Ей на вход надо кидать data['text']
+
+    buttons = [
+        types.InlineKeyboardButton(text="👍", callback_data="like"),
+        types.InlineKeyboardButton(text="👎", callback_data="dislike")
+    ]
+    keyboard = types.InlineKeyboardMarkup()
+    keyboard.add(*buttons)
+
+    await message.reply_audio(audio=audio, title=data['text'], reply=False, reply_markup=keyboard)
     await state.finish()
+
+
+@dp.callback_query_handler(text="like")
+async def send_random_value(call: types.CallbackQuery):
+    await call.message.answer('Спасибо за обратную связь!')
+
+
+@dp.callback_query_handler(text="dislike")
+async def send_random_value(call: types.CallbackQuery):
+    await call.message.answer('Спасибо за обратную связь!')
+
+
+
+@dp.message_handler(commands="inline_url")
+async def cmd_inline_url(message: types.Message):
+    buttons = [
+        types.InlineKeyboardButton(text="👍", url="https://github.com"),
+        types.InlineKeyboardButton(text="👎", url="tg://resolve?domain=telegram")
+    ]
+    keyboard = types.InlineKeyboardMarkup()
+    keyboard.add(*buttons)
+    await message.answer("Кнопки-ссылки", reply_markup=keyboard)
+
 
 
 async def shutdown(dispatcher: Dispatcher):
