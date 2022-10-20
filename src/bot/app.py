@@ -72,19 +72,6 @@ async def send_random_value(call: types.CallbackQuery):
     await call.message.answer('Спасибо за обратную связь!')
 
 
-
-@dp.message_handler(commands="inline_url")
-async def cmd_inline_url(message: types.Message):
-    buttons = [
-        types.InlineKeyboardButton(text="👍", url="https://github.com"),
-        types.InlineKeyboardButton(text="👎", url="tg://resolve?domain=telegram")
-    ]
-    keyboard = types.InlineKeyboardMarkup()
-    keyboard.add(*buttons)
-    await message.answer("Кнопки-ссылки", reply_markup=keyboard)
-
-
-
 async def shutdown(dispatcher: Dispatcher):
     await dispatcher.storage.close()
     await dispatcher.storage.wait_closed()
