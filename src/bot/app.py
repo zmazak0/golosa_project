@@ -1,6 +1,7 @@
 from dotenv import load_dotenv
 import os
 import logging
+import requests, json
 from aiogram import Bot, Dispatcher, types, executor
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
@@ -47,9 +48,12 @@ async def cancel_handler(message: types.Message, state: FSMContext):
 async def process_text(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['text'] = message.text
-    audio = types.InputFile("dummy.mp3")
+    #audio = types.InputFile("dummy.mp3")
     # Тут надо прикрутить получение предсказания от модельки
     # Ей на вход надо кидать data['text']
+    audio = requests.post("http://127.0.0.1:8000/synthesys", data=json.dumps(
+        {"text" : data['text']})
+    )
 
     buttons = [
         types.InlineKeyboardButton(text="👍", callback_data="like"),
