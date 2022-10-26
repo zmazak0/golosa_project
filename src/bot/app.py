@@ -1,12 +1,15 @@
+import asyncio
 from dotenv import load_dotenv
 import os
 import logging
-import requests, json
+import json
 from aiogram import Bot, Dispatcher, types, executor
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher import FSMContext
+from redis import Redis
+from datetime import datetime
 
 logging.basicConfig(level=logging.INFO)
 
@@ -16,6 +19,34 @@ TG_BOT_TOKEN = os.environ['TG_BOT_TOKEN']
 bot = Bot(token=TG_BOT_TOKEN)
 storage = MemoryStorage()
 dp = Dispatcher(bot, storage=storage)
+
+redis_client = Redis(host="0.0.0.0", port=6379, db=0)
+redis_subscriber = redis_client.pubsub()
+redis_subscriber.subscribe("audio")
+
+
+async def get_audio():
+    buttons = [
+        types.InlineKeyboardButton(text="👍", callback_data="like"),
+        types.InlineKeyboardButton(text="👎", callback_data="dislike")
+    ]
+    keyboard = types.InlineKeyboardMarkup()
+    keyboard.add(*buttons)
+    while True:
+        message = redis_subscriber.get_message()
+        if message and message['type'] == "message":
+            channel = message['channel'].decode("utf-8")
+            response = json.loads(message['data'].decode("utf-8"))
+            print("Input:", response)
+            if channel == "audio":
+                await bot.send_audio(
+                    chat_id=response['chat_id'],
+                    audio=bytes(response['audio']),
+                    title=f"audio_{datetime.now().strftime('%Y%m%d_%H_%M_%S')}",
+                    reply_markup=keyboard
+                )
+        await asyncio.sleep(0.1)
+
 
 class Form(StatesGroup):
     text = State()
@@ -42,26 +73,20 @@ async def cancel_handler(message: types.Message, state: FSMContext):
     await state.finish()
     await message.reply('Cancelled.', reply_markup=types.ReplyKeyboardRemove())
 
+
 # vocalize text
 @dp.message_handler(state=Form.text)
 async def process_text(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['text'] = message.text
-    #audio = types.InputFile("dummy.mp3")
-    # Тут надо прикрутить получение предсказания от модельки
-    # Ей на вход надо кидать data['text']
-    audio = requests.post("http://127.0.0.1:8000/synthesys", data=json.dumps(
-        {"text" : data['text']})
-    )
 
-    buttons = [
-        types.InlineKeyboardButton(text="👍", callback_data="like"),
-        types.InlineKeyboardButton(text="👎", callback_data="dislike")
-    ]
-    keyboard = types.InlineKeyboardMarkup()
-    keyboard.add(*buttons)
+    request = {
+        'text': data['text'],
+        'chat_id': message.chat.id
+    }
+    print("Output:", request)
+    redis_client.publish(channel="text", message=json.dumps(request))
 
-    await message.reply_audio(audio=audio, title=data['text'], reply=False, reply_markup=keyboard)
     await state.finish()
 
 
@@ -76,4 +101,6 @@ async def shutdown(dispatcher: Dispatcher):
 
 
 if __name__ == '__main__':
+    loop = asyncio.get_event_loop()
+    loop.create_task(get_audio())
     executor.start_polling(dp, skip_updates=True, on_shutdown=shutdown)
