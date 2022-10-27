@@ -1,4 +1,6 @@
 import asyncio
+import csv
+
 from dotenv import load_dotenv
 import os
 import logging
@@ -12,6 +14,7 @@ from redis import Redis
 from datetime import datetime
 
 logging.basicConfig(level=logging.INFO)
+FEEDBACK_PATH = "./bot_feedback.csv"
 
 load_dotenv(".env")
 TG_BOT_TOKEN = os.environ['TG_BOT_TOKEN']
@@ -92,6 +95,12 @@ async def process_text(message: types.Message, state: FSMContext):
 
 @dp.callback_query_handler(text=["like", "dislike"])
 async def send_random_value(call: types.CallbackQuery):
+    feedback = "like" if call.data == "like" else "dislike"
+    feedback_info = [call.from_user.id, call.inline_message_id, feedback]
+    with open('FEEDBACK_PATH', 'w') as f:
+        write = csv.writer(f)
+        write.writerow(feedback_info)
+
     await call.message.answer('Спасибо за обратную связь!')
 
 
