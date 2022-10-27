@@ -1,4 +1,5 @@
-from dotenv import load_dotenv
+import sys
+from dataclasses import dataclass, field
 import os
 import logging
 import requests, json
@@ -7,16 +8,31 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher import FSMContext
+from transformers import HfArgumentParser
 
 logging.basicConfig(level=logging.INFO)
 
-# load_dotenv(".env")
-TG_BOT_TOKEN = "5679363404:AAFJBdgS-9C15fERNAxpv1U1xfANkwiPnws"
-# TG_BOT_TOKEN = os.environ['TG_BOT_TOKEN']
 
+@dataclass
+class TgArguments:
+    bot_token: str = field(default="", metadata={"help": "Bot token."})
+    log_path: str = field(default=None, metadata={"help": "Log path."})
+    log_error_path: str = field(default=None, metadata={"help": "Log path for fails."})
+
+# парсер аргументов командной строки
+parser = HfArgumentParser(TgArguments)
+if len(sys.argv) == 2 and sys.argv[1].endswith(".json"):
+    # If we pass only one argument to the script and it's the path to a json file,
+    # let's parse it to get our arguments.
+    args = parser.parse_json_file(json_file=os.path.abspath(sys.argv[1]))[0]
+else:
+    args = parser.parse_args_into_dataclasses()[0]
+
+TG_BOT_TOKEN = args.bot_token
 bot = Bot(token=TG_BOT_TOKEN)
 storage = MemoryStorage()
 dp = Dispatcher(bot, storage=storage)
+
 
 class Form(StatesGroup):
     text = State()
@@ -43,17 +59,18 @@ async def cancel_handler(message: types.Message, state: FSMContext):
     await state.finish()
     await message.reply('Cancelled.', reply_markup=types.ReplyKeyboardRemove())
 
+
 # vocalize text
 @dp.message_handler(state=Form.text)
 async def process_text(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['text'] = message.text
-    #audio = types.InputFile("dummy.mp3")
+    # audio = types.InputFile("dummy.mp3")
     # Тут надо прикрутить получение предсказания от модельки
     # Ей на вход надо кидать data['text']
     audio = requests.post("http://127.0.0.1:8000/synthesys", data=json.dumps(
-        {"text" : data['text']})
-    )
+        {"text": data['text']})
+                          )
 
     buttons = [
         types.InlineKeyboardButton(text="👍", callback_data="like"),
