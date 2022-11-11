@@ -17,7 +17,8 @@ from pydrive.auth import GoogleAuth, ServiceAccountCredentials
 
 gauth = GoogleAuth()
 scope = ['https://www.googleapis.com/auth/drive']
-gauth.credentials = ServiceAccountCredentials.from_json_keyfile_name("client_secrets.json", scope)
+
+gauth.credentials = ServiceAccountCredentials.from_json_keyfile_name("creds/client_secrets.json", scope)
 drive = GoogleDrive(gauth)
 
 logging.basicConfig(level=logging.INFO)
