@@ -31,7 +31,10 @@ bot = Bot(token=TG_BOT_TOKEN)
 storage = MemoryStorage()
 dp = Dispatcher(bot, storage=storage)
 
-redis_client = Redis(host="0.0.0.0", port=6379, db=0)
+REDIS_HOSTNAME = os.environ['REDIS_HOSTNAME']
+REDIS_PORT = int(os.environ['REDIS_PORT'])
+
+redis_client = Redis(host=REDIS_HOSTNAME, port=REDIS_PORT, db=0)
 redis_subscriber = redis_client.pubsub()
 redis_subscriber.subscribe("audio")
 
