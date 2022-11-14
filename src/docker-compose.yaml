@@ -1,0 +1,32 @@
+version: '3'
+services:
+  redis:
+    container_name: redis
+    image: redis:latest
+    restart: always
+    ports:
+      - 6379:6379
+
+  bot:
+    container_name: bot
+    build: ./bot
+    image: bot:latest
+    depends_on:
+      - redis
+    volumes:
+      - ./bot/creds:/creds
+    environment:
+      TG_BOT_TOKEN: ${TG_BOT_TOKEN}
+      GDRIVE_FOLDER_ID: ${GDRIVE_FOLDER_ID}
+      REDIS_HOSTNAME: redis
+      REDIS_PORT: 6379
+
+  tts:
+    container_name: tts
+    build: ./tts
+    image: tts:latest
+    depends_on:
+      - redis
+    environment:
+      REDIS_HOSTNAME: redis
+      REDIS_PORT: 6379

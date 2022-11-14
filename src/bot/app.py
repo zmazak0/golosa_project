@@ -3,6 +3,8 @@ from dotenv import load_dotenv
 import os
 import logging
 import json
+import string
+import random
 from aiogram import Bot, Dispatcher, types, executor
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
@@ -10,17 +12,29 @@ from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher import FSMContext
 from redis import Redis
 from datetime import datetime
+from pydrive.drive import GoogleDrive
+from pydrive.auth import GoogleAuth, ServiceAccountCredentials
+
+gauth = GoogleAuth()
+scope = ['https://www.googleapis.com/auth/drive']
+
+gauth.credentials = ServiceAccountCredentials.from_json_keyfile_name("creds/client_secrets.json", scope)
+drive = GoogleDrive(gauth)
 
 logging.basicConfig(level=logging.INFO)
 
 load_dotenv(".env")
 TG_BOT_TOKEN = os.environ['TG_BOT_TOKEN']
+GDRIVE_FOLDER_ID = os.environ['GDRIVE_FOLDER_ID']
 
 bot = Bot(token=TG_BOT_TOKEN)
 storage = MemoryStorage()
 dp = Dispatcher(bot, storage=storage)
 
-redis_client = Redis(host="0.0.0.0", port=6379, db=0)
+REDIS_HOSTNAME = os.environ['REDIS_HOSTNAME']
+REDIS_PORT = int(os.environ['REDIS_PORT'])
+
+redis_client = Redis(host=REDIS_HOSTNAME, port=REDIS_PORT, db=0)
 redis_subscriber = redis_client.pubsub()
 redis_subscriber.subscribe("audio")
 
@@ -93,6 +107,19 @@ async def process_text(message: types.Message, state: FSMContext):
 @dp.callback_query_handler(text=["like", "dislike"])
 async def send_random_value(call: types.CallbackQuery):
     await call.message.answer('Спасибо за обратную связь!')
+
+
+@dp.message_handler(content_types=[types.ContentType.VOICE])
+async def voice_message_handler(message: types.Message):
+    file = await message.voice.get_file()
+    file_name = ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
+    file_path = f'{file_name}.ogg'
+    await bot.download_file(file_path=file.file_path, destination=file_path)
+
+    f = drive.CreateFile({'title': f'{file_name}.ogg', 'parents': [{'id': GDRIVE_FOLDER_ID}]})
+    f.SetContentFile(f'{file_name}.ogg')
+    f.Upload()
+    os.remove(file_path)
 
 
 async def shutdown(dispatcher: Dispatcher):
