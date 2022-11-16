@@ -12,7 +12,7 @@ from pathlib import Path
 import torch
 from pprint import pprint
 from omegaconf import OmegaConf
-from IPython.display import Audio, display
+# from IPython.display import Audio, display
 
 # ЭТАП 2
 torch.hub.download_url_to_file('https://raw.githubusercontent.com/snakers4/silero-models/master/models.yml',
