@@ -1,10 +1,9 @@
-import asyncio
-from dotenv import load_dotenv
 import os
-import logging
+import asyncio
+import random
 import json
 import string
-import random
+import callbacks
 import commands
 from dotenv import load_dotenv
 from aiogram import Dispatcher, types, executor
@@ -16,10 +15,16 @@ from datetime import datetime
 from pydrive.drive import GoogleDrive
 from pydrive.auth import GoogleAuth, ServiceAccountCredentials
 
+load_dotenv(".env")
+GDRIVE_FOLDER_ID = os.environ['GDRIVE_FOLDER_ID']
+REDIS_HOSTNAME = os.environ['REDIS_HOSTNAME']
+REDIS_PORT = int(os.environ['REDIS_PORT'])
+
 gauth = GoogleAuth()
 scope = ['https://www.googleapis.com/auth/drive']
 
-gauth.credentials = ServiceAccountCredentials.from_json_keyfile_name("creds/client_secrets.json", scope)
+gauth.credentials = ServiceAccountCredentials.from_json_keyfile_name("creds/client_secrets.json",
+                                                                     scope)
 drive = GoogleDrive(gauth)
 
 redis_client = Redis(host=REDIS_HOSTNAME, port=REDIS_PORT, db=0)
