@@ -66,11 +66,6 @@ async def process_text(message: types.Message, state: FSMContext):
     await state.finish()
 
 
-@dp.callback_query_handler(text=["like", "dislike"])
-async def send_random_value(call: types.CallbackQuery):
-    await call.message.answer('Спасибо за обратную связь!')
-
-
 @dp.message_handler(content_types=[types.ContentType.VOICE])
 async def voice_message_handler(message: types.Message):
     file = await message.voice.get_file()
