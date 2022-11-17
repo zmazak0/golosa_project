@@ -6,8 +6,8 @@ import json
 import string
 import random
 import commands
-from aiogram.dispatcher.filters.state import State, StatesGroup
-from aiogram.contrib.fsm_storage.memory import MemoryStorage
+from dotenv import load_dotenv
+from aiogram import Dispatcher, types, executor
 from dispatcher import dp, bot
 from filters import Form
 from aiogram.dispatcher import FSMContext
@@ -21,19 +21,6 @@ scope = ['https://www.googleapis.com/auth/drive']
 
 gauth.credentials = ServiceAccountCredentials.from_json_keyfile_name("creds/client_secrets.json", scope)
 drive = GoogleDrive(gauth)
-
-logging.basicConfig(level=logging.INFO)
-
-load_dotenv(".env")
-TG_BOT_TOKEN = os.environ['TG_BOT_TOKEN']
-GDRIVE_FOLDER_ID = os.environ['GDRIVE_FOLDER_ID']
-
-bot = Bot(token=TG_BOT_TOKEN)
-storage = MemoryStorage()
-dp = Dispatcher(bot, storage=storage)
-
-REDIS_HOSTNAME = os.environ['REDIS_HOSTNAME']
-REDIS_PORT = int(os.environ['REDIS_PORT'])
 
 redis_client = Redis(host=REDIS_HOSTNAME, port=REDIS_PORT, db=0)
 redis_subscriber = redis_client.pubsub()
