@@ -8,7 +8,8 @@ import random
 from aiogram import Bot, Dispatcher, types, executor
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
-from aiogram.dispatcher.filters import Text
+from dispatcher import dp, bot
+from filters import Form
 from aiogram.dispatcher import FSMContext
 from redis import Redis
 from datetime import datetime
@@ -60,10 +61,6 @@ async def get_audio():
                     reply_markup=keyboard
                 )
         await asyncio.sleep(0.1)
-
-
-class Form(StatesGroup):
-    text = State()
 
 
 @dp.message_handler(commands="help")
